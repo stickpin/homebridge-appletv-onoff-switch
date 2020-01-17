@@ -29,4 +29,4 @@ The code delivered AS-IS, due to lack of time I am not planning to provide any s
         "credentials": "<Your_Apple_TV_Pairing_Token>"
     }
 ],
-```                                                                                                                                                  |
+```
