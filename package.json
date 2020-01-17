@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "description": "Homebridge plugin that allows you to turn on and turn off AppleTV (Gen 4 and newer) with real On/Off status",
   "keywords": [
-    "homebridge-plugin"
-    "appletv-on-off"
+    "homebridge-plugin",
+    "appletv-on-off",
     "appletv"
   ],
   "repository": {
