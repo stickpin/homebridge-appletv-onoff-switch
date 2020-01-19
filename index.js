@@ -52,7 +52,10 @@ AppleTVAccessory.prototype.atvConnect = function () {
             that.device = devices[0];
             that.device.on('error', function (error) {
                 that.log("ERROR: " + error.message);
-                that.log("ERROR: " + error.stack);
+                that.log("ERROR Code: " + error.code);
+                if(error.code == "ECONNRESET" || error.code == "EPIPE") {
+                    that.atvConnect();
+                };
             });
             return that.device.openConnection(credentials);
         })
@@ -61,7 +64,11 @@ AppleTVAccessory.prototype.atvConnect = function () {
             that.updateStatus();
         })
         .catch(function (error) {
-            that.log("ERROR: " + error);
+            that.log("ERROR: " + error.message);
+            that.log("ERROR Code: " + error.code);
+            if(error.code == "ECONNRESET" || error.code == "EPIPE") {
+                that.atvConnect();
+            };
         });
 }
 
@@ -86,7 +93,11 @@ AppleTVAccessory.prototype.checkATVStatus = function () {
         }
     })
     .catch(function (error) {
-        that.log("ERROR: " + error);
+        that.log("ERROR: " + error.message);
+        that.log("ERROR Code: " + error.code);
+        if(error.code == "ECONNRESET" || error.code == "EPIPE") {
+            that.atvConnect();
+        };
     });
 }
 
@@ -110,17 +121,29 @@ AppleTVAccessory.prototype.setPowerState = function (state, callback) {
                 that.log("AppleTV: " + that.name + " is turned off");
                 that.getPowerState(callback);
             }).catch(function (error) {
-                that.log("ERROR: " + error);
+                that.log("ERROR: " + error.message);
+                that.log("ERROR Code: " + error.code);
+                if(error.code == "ECONNRESET" || error.code == "EPIPE") {
+                    that.atvConnect();
+                };
             });
         }).catch(function (error) {
-            that.log("ERROR: " + error);
+            that.log("ERROR: " + error.message);
+            that.log("ERROR Code: " + error.code);
+            if(error.code == "ECONNRESET" || error.code == "EPIPE") {
+                that.atvConnect();
+            };
         });
     } else {
         that.device.sendKeyCommand(appletv.AppleTV.Key.Tv).then(function () {
             that.log("AppleTV: " + that.name + " is turned on");
             that.getPowerState(callback);
         }).catch(function (error) {
-            that.log("ERROR: " + error);
+            that.log("ERROR: " + error.message);
+            that.log("ERROR Code: " + error.code);
+            if(error.code == "ECONNRESET" || error.code == "EPIPE") {
+                that.atvConnect();
+            };
         });
     }
 }
