@@ -14,11 +14,10 @@ The code delivered AS-IS, due to lack of time I am not planning to provide any s
 # Installation
 
 1. Install homebridge (if not already installed) using: `npm install -g homebridge`
-2. Install dependencies: `sudo apt-get install libtool autoconf automake libavahi-compat-libdnssd-dev`
-3. Install this plugin using: `sudo npm install -g homebridge-appletv-onoff-switch --unsafe-perm`
-4. Pair your node-appletv-x with your Apple TV using: `/<node_modules_folder>/homebridge-appletv-onoff-switch/node_modules/node-appletv-x/bin/appletv pair` 
+2. Install this plugin using: `sudo npm install -g homebridge-appletv-onoff-switch --unsafe-perm`
+3. Pair your node-appletv-x with your Apple TV using: `/<node_modules_folder>/homebridge-appletv-onoff-switch/node_modules/node-appletv-x/bin/appletv pair` 
 For example: `/usr/lib/node_modules/homebridge-appletv-onoff-switch/node_modules/node-appletv-x/bin/appletv pair`
-5. Update your configuration file. See below for a sample.
+4. Update your configuration file. See below for a sample.
 
 # Configuration
 
