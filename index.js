@@ -13,6 +13,7 @@ function AppleTVAccessory(log, config) {
     this.credentials = config.credentials;
     this.updateRate = 5000;
     this.retryRate = 2000;
+    this.skipCheck = false;
 
     this.services = [];
 
@@ -77,8 +78,13 @@ AppleTVAccessory.prototype.atvConnect = function () {
 AppleTVAccessory.prototype.updateStatus = function () {
     var that = this;
     setTimeout(function () {
-        that.checkATVStatus();
-        that.updateStatus();
+        if(!that.skipCheck) {
+            that.checkATVStatus();
+            that.updateStatus();
+        } else {
+            that.skipCheck = false;
+            that.updateStatus();
+        }
     }, this.updateRate);
 }
 
@@ -121,7 +127,9 @@ AppleTVAccessory.prototype.setPowerState = function (state, callback) {
         if (state) {
             that.device.sendKeyCommand(appletv.AppleTV.Key.Tv).then(function () {
                 that.log("AppleTV: " + that.name + " is turned on");
+                that.updatePowerState(state);
                 that.getPowerState(callback);
+                that.skipCheck = true;
             }).catch(function (error) {
                 that.log("ERROR: " + error.message);
                 that.log("ERROR Code: " + error.code);
@@ -134,7 +142,9 @@ AppleTVAccessory.prototype.setPowerState = function (state, callback) {
             that.device.sendKeyCommand(appletv.AppleTV.Key.LongTv).then(function () {
                 that.device.sendKeyCommand(appletv.AppleTV.Key.Select).then(function () {
                     that.log("AppleTV: " + that.name + " is turned off");
+                    that.updatePowerState(state);
                     that.getPowerState(callback);
+                    that.skipCheck = true;
                 }).catch(function (error) {
                     that.log("ERROR: " + error.message);
                     that.log("ERROR Code: " + error.code);
