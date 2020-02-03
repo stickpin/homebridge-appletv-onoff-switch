@@ -12,7 +12,7 @@ function AppleTVAccessory(log, config) {
     this.name = config.name;
     this.credentials = config.credentials;
     this.updateRate = 5000;
-    this.powerState = false;
+    this.retryRate = 2000;
 
     this.services = [];
 
@@ -53,9 +53,10 @@ AppleTVAccessory.prototype.atvConnect = function () {
             that.device.on('error', function (error) {
                 that.log("ERROR: " + error.message);
                 that.log("ERROR Code: " + error.code);
-                if(error.code == "ECONNRESET" || error.code == "EPIPE") {
+                setTimeout(function () {
+                    that.log("Trying to reconnect to AppleTV: " + that.name);
                     that.atvConnect();
-                };
+                }, that.retryRate);
             });
             return that.device.openConnection(credentials);
         })
@@ -66,9 +67,10 @@ AppleTVAccessory.prototype.atvConnect = function () {
         .catch(function (error) {
             that.log("ERROR: " + error.message);
             that.log("ERROR Code: " + error.code);
-            if(error.code == "ECONNRESET" || error.code == "EPIPE") {
+            setTimeout(function () {
+                that.log("Trying to reconnect to AppleTV: " + that.name);
                 that.atvConnect();
-            };
+            }, that.retryRate);
         });
 }
 
@@ -84,66 +86,73 @@ AppleTVAccessory.prototype.checkATVStatus = function () {
     var that = this;
 
     that.device.sendIntroduction().then(function (deviceInfo) {
-        var currentPowerState = deviceInfo.payload.logicalDeviceCount;
+            var currentPowerState = deviceInfo.payload.logicalDeviceCount;
 
-        if (currentPowerState >= 1) {
-            that.updatePowerState(true);
-        } else {
-            that.updatePowerState(false);
-        }
-    })
-    .catch(function (error) {
-        that.log("ERROR: " + error.message);
-        that.log("ERROR Code: " + error.code);
-        if(error.code == "ECONNRESET" || error.code == "EPIPE") {
-            that.atvConnect();
-        };
-    });
+            if (currentPowerState >= 1) {
+                that.updatePowerState(true);
+            } else {
+                that.updatePowerState(false);
+            }
+        })
+        .catch(function (error) {
+            that.log("ERROR: " + error.message);
+            that.log("ERROR Code: " + error.code);
+            setTimeout(function () {
+                that.log("Trying to reconnect to AppleTV: " + that.name);
+                that.atvConnect();
+            }, that.retryRate);
+        });
 }
 
 AppleTVAccessory.prototype.getPowerState = function (callback) {
-    callback(null, this.powerState);
+    callback(null, this.atvService.getCharacteristic(Characteristic.Active).value);
 }
 
 AppleTVAccessory.prototype.updatePowerState = function (state) {
-    if (this.powerState != state) {
-        this.powerState = state;
-        this.atvService.getCharacteristic(Characteristic.Active).updateValue(this.powerState);
+    if (this.atvService.getCharacteristic(Characteristic.Active).value != state) {
+        this.atvService.getCharacteristic(Characteristic.Active).updateValue(state);
     }
 }
 
 AppleTVAccessory.prototype.setPowerState = function (state, callback) {
     var that = this;
 
-    if (this.powerState) {
-        that.device.sendKeyCommand(appletv.AppleTV.Key.LongTv).then(function () {
-            that.device.sendKeyCommand(appletv.AppleTV.Key.Select).then(function () {
-                that.log("AppleTV: " + that.name + " is turned off");
+    if(this.atvService.getCharacteristic(Characteristic.Active).value != state) {
+        if (state) {
+            that.device.sendKeyCommand(appletv.AppleTV.Key.Tv).then(function () {
+                that.log("AppleTV: " + that.name + " is turned on");
                 that.getPowerState(callback);
             }).catch(function (error) {
                 that.log("ERROR: " + error.message);
                 that.log("ERROR Code: " + error.code);
-                if(error.code == "ECONNRESET" || error.code == "EPIPE") {
+                setTimeout(function () {
+                    that.log("Trying to reconnect to AppleTV: " + that.name);
                     that.atvConnect();
-                };
+                }, that.retryRate);
             });
-        }).catch(function (error) {
-            that.log("ERROR: " + error.message);
-            that.log("ERROR Code: " + error.code);
-            if(error.code == "ECONNRESET" || error.code == "EPIPE") {
-                that.atvConnect();
-            };
-        });
+        } else {
+            that.device.sendKeyCommand(appletv.AppleTV.Key.LongTv).then(function () {
+                that.device.sendKeyCommand(appletv.AppleTV.Key.Select).then(function () {
+                    that.log("AppleTV: " + that.name + " is turned off");
+                    that.getPowerState(callback);
+                }).catch(function (error) {
+                    that.log("ERROR: " + error.message);
+                    that.log("ERROR Code: " + error.code);
+                    setTimeout(function () {
+                        that.log("Trying to reconnect to AppleTV: " + that.name);
+                        that.atvConnect();
+                    }, that.retryRate);
+                });
+            }).catch(function (error) {
+                that.log("ERROR: " + error.message);
+                that.log("ERROR Code: " + error.code);
+                setTimeout(function () {
+                    that.log("Trying to reconnect to AppleTV: " + that.name);
+                    that.atvConnect();
+                }, that.retryRate);
+            });
+        }
     } else {
-        that.device.sendKeyCommand(appletv.AppleTV.Key.Tv).then(function () {
-            that.log("AppleTV: " + that.name + " is turned on");
-            that.getPowerState(callback);
-        }).catch(function (error) {
-            that.log("ERROR: " + error.message);
-            that.log("ERROR Code: " + error.code);
-            if(error.code == "ECONNRESET" || error.code == "EPIPE") {
-                that.atvConnect();
-            };
-        });
+        that.getPowerState(callback);
     }
 }
